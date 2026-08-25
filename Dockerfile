@@ -1,14 +1,14 @@
 # syntax=docker/dockerfile:1
-
+# Test runner image (not a production service binary).
 FROM golang:1.26-bookworm
 
 WORKDIR /src
 
-# Cache module downloads separately from source changes.
 COPY go.mod go.sum ./
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go mod download
 
 COPY . .
 
-# Default: run the full unit-test suite. Compose overrides env for RabbitMQ.
 CMD ["go", "test", "./...", "-count=1"]
